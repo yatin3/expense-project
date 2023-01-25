@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="form">
+        <label for="item">Choose expense-amount:</label>
+        <input type="text" id="item" name="amount">
+        <label for="description">Choose description:</label>
+        <input type="text" id="description" name="description">
+        <label for="category">Choose a category:</label>
+        <select id="category" name="category">
+ 
+        <option value="fuel">fuel</option>    
+        <option value="food">food</option>    
+        <option value="electricity">electricity</option>    
+        <option value="movie">movie</option>    
+
+        </select>
+
+        <input type="submit" value="Add Expense" id="button">
+
+    </form>
+
+    <ul id="itemList">
+
+    </ul>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+   
+    <script>
+        let text1 = document.getElementById('item');
+        let text2 = document.getElementById('description');
+        let text3 = document.getElementById('category');
+
+        const form = document.querySelector('form');
+        form.addEventListener('submit',(e)=>{
+           
+            e.preventDefault();
+            const amount = e.target[0].value;
+            const description = e.target[1].value;
+            const category = e.target[2].value;
+
+            const obj = {
+                amount:amount,
+                description:description,
+                category:category
+            }
+            
+            axios.post("http://localhost:3000/Expense",obj)
+            .then((res) => {
+                showUserOnScreen(res.data);
+            })
+            .catch((err) => console.log(err));
+        });
+        
+        function showUserOnScreen(realObj){
+              
+            const list = document.getElementById('itemList');
+             let li = document.createElement('li');
+
+            const amountChild = document.createTextNode(realObj.amount);
+            const descriptionChild = document.createTextNode(realObj.description);
+            const categoryChild = document.createTextNode(realObj.category);
+            
+            let delet = document.createElement('BUTTON');
+            delet.setAttribute('id',realObj.id);
+            let deletText = document.createTextNode('DELETE');
+            delet.appendChild(deletText);
+
+            let edit = document.createElement('BUTTON');
+            edit.setAttribute('id',realObj.id);
+            let editText = document.createTextNode('EDIT');
+            edit.appendChild(editText);
+
+            li.appendChild(amountChild);
+            li.appendChild(document.createTextNode('-'));
+            li.appendChild(descriptionChild);
+            li.appendChild(document.createTextNode('-'));
+            li.appendChild(categoryChild);
+            li.appendChild(document.createTextNode('-'));
+            li.appendChild(delet);
+            li.appendChild(edit);
+
+           li.childNodes[6].addEventListener('click',deleteClick);
+           li.childNodes[7].addEventListener('click',editClick);
+
+           list.appendChild(li);
+        }
+
+        function deleteClick(e){
+             e.preventDefault();
+
+            const id = e.target.parentNode.childNodes[6].id;
+            axios.get(`http://localhost:3000/Expense/${id}`)
+            .then((res)=>{
+                e.target.parentNode.parentNode.removeChild(e.target.parentNode);
+                console.log(res)
+            })
+            .catch((err)=> console.log(err));
+        }
+
+        window.addEventListener("DOMContentLoaded", ()=>{
+           
+            axios.get('http://localhost:3000/Expenses')
+            .then((m)=>{
+
+                for(let i=0; i<m.data.length; i++){
+                    showUserOnScreen(m.data[i]);
+                }
+            })
+            .catch((err)=> console.log(err))
+        });
+
+        function editClick(e){
+            e.preventDefault();
+         
+            const id = e.target.parentNode.childNodes[7].id;
+
+            text1.value = e.target.parentNode.childNodes[0].textContent;
+            text2.value = e.target.parentNode.childNodes[2].textContent;
+            text3.value = e.target.parentNode.childNodes[4].textContent;
+
+             axios.get(`http://localhost:3000/Expense/${id}`)
+            .then((res)=>{
+                e.target.parentNode.parentNode.removeChild(e.target.parentNode);
+                console.log(res)
+            })
+            .catch((err)=> console.log(err));
+
+        }
+
+    </script>
+</body>
+</html>
